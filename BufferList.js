@@ -38,12 +38,11 @@ var RuffBufferList = function BufferList() {
         }, this);
         return tmp;
     };
-    this.copy = function (dest, destStart, srcStart, srcEnd) {
-    }
-    this.readFloatBE = function (offset) {
-        var tmp = this.slice(offset, offset + 1);
-
-    }
+    this.copy = function (dst, dstStart, srcStart, srcEnd) {
+        var tmp = this.slice(srcStart, srcEnd);
+        tmp.copy(dst, dstStart);
+        return dst;
+    };
     this.getArray = function () {
         return arr;
     };
@@ -87,16 +86,14 @@ RuffBufferList.prototype.__put_index__ = function (i, value) {
 
 
 var bl = new RuffBufferList();
+var b = Buffer.from('!!!!!!!!!!!!!');
 
 bl.append(Buffer.from('123'));
-console.log(bl.length);
 bl.append(Buffer.from('456'));
 bl.append(Buffer.from('789'));
 bl.append(Buffer.from('123123'));
-console.log(bl.length);
-console.log(bl.getArray());
-console.log(bl.slice());
-console.log(bl.readDoubleBE(2));
+console.log(bl.copy(b,3,5,7));
+
 
 
 exports.BufferList = RuffBufferList;
