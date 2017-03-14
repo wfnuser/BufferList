@@ -92,14 +92,14 @@ describe('test parser', function () {
         bl.append(Buffer.from('123'));
         bl.append(Buffer.from('456'));
         bl.append(Buffer.from('789'));
-        
-        if (bl.indexOf(1) != 0)
+        console.log(bl.__get_index__(2));
+        if (bl.indexOf2(1) != 0)
             done(new Error());
-        if (bl.indexOf("12") != 0)
+        if (bl.indexOf2("12") != 0)
             done(new Error());
-        if (bl.indexOf("34567") != 2)
+        if (bl.indexOf2("34567") != 2)
             done(new Error());
-        if (bl.indexOf("13") != -1)
+        if (bl.indexOf2("13") != -1)
             done(new Error());
         done();
     });

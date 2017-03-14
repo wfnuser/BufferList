@@ -1,26 +1,33 @@
 'use strict';
 
 var RuffBufferList = function BufferList() {
-    var idx = 0;
+    this.length = 0;
     this.arr = [];
-    this.length = this.arr.length;
 };
 
 RuffBufferList.prototype.__get_index__ = function (i) {
-    return this.slice(i, i+1);
+    var tmp = new Buffer("");
+    for (var idx = 0; idx < this.arr.length; idx++) {
+        if (i < this.arr[idx].length) {
+            tmp = this.arr[idx][i];
+            break;
+        } else {
+            i -= this.arr[idx].length;
+        };
+    };
+    return tmp;
 };
 
 RuffBufferList.prototype.__put_index__ = function (i, value) {
-    this.arr.some(function (element) {
-        if (i < this.length) {
-            var tmp = value + "";
-            element.write(tmp,i);
-            return true;
-        }
-        else {
-            i -= this.length;
-        }  
-    }, this);
+    value = value + "";
+    for (var idx = 0; idx < this.arr.length; idx++) {
+        if (i < this.arr[idx].length) {
+            this.arr[idx].write(value,i);
+            break;
+        } else {
+            i -= this.arr[idx].length;
+        };
+    };
 };
 
 RuffBufferList.prototype.slice = function (start, end) {
@@ -83,7 +90,15 @@ RuffBufferList.prototype.append = function (val) {
     this.length += val.length;
 };
 
-RuffBufferList.prototype.indexOf = function (dst) {
+RuffBufferList.prototype.readInt8 = function (offset) {
+    return this.__get_index__(offset);
+};
+
+RuffBufferList.prototype.readUInt8 = function (offset) {
+    return this.__get_index__(offset);
+};
+
+RuffBufferList.prototype.indexOf2 = function (dst) {
     var dst = dst + "";
     if (dst.length > this.length) {
         return -1;
@@ -121,7 +136,6 @@ RuffBufferList.prototype.indexOf = function (dst) {
     }
 };
 
-
 (function () {
   var methods = {
       'readDoubleBE' : 8
@@ -136,8 +150,6 @@ RuffBufferList.prototype.indexOf = function (dst) {
     , 'readInt16LE'  : 2
     , 'readUInt16BE' : 2
     , 'readUInt16LE' : 2
-    , 'readInt8'     : 1
-    , 'readUInt8'    : 1
   }
 
   for (var m in methods) {
