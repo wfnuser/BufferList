@@ -1,51 +1,9 @@
 'use strict';
 
 var RuffBufferList = function BufferList() {
-    var that = this;
     var idx = 0;
-    var arr = [];
-    this.length = arr.length;
-    this.append = function (val) {
-        // if (typeof(val) == "Buffer") {
-        arr.push(val);
-        // }
-        this.length += val.length;
-    };
-    this.slice = function (start, end) {
-        var tmp = new Buffer('');
-        if (start === null || start === undefined) {
-            start = 0;
-        }
-        if (end === null || end === undefined) {
-            end = that.length;
-        }
-        arr.some(function (element) {
-            if (start > element.length - 1) {
-                start -= element.length;
-                end -= element.length;
-            }
-            else {
-                if (end > element.length) {
-                    tmp = Buffer.concat([tmp, element.slice(start)]);
-                    start = 0;
-                }
-                else {
-                    tmp = Buffer.concat([tmp, element.slice(start, end)]);
-                    return true;
-                }
-                end -= element.length;
-            }
-        }, this);
-        return tmp;
-    };
-    this.copy = function (dst, dstStart, srcStart, srcEnd) {
-        var tmp = this.slice(srcStart, srcEnd);
-        tmp.copy(dst, dstStart);
-        return dst;
-    };
-    this.getArray = function () {
-        return arr;
-    };
+    this.arr = [];
+    this.length = this.arr.length;
 };
 
 RuffBufferList.prototype.__get_index__ = function (i) {
@@ -54,6 +12,66 @@ RuffBufferList.prototype.__get_index__ = function (i) {
 
 RuffBufferList.prototype.__put_index__ = function (i, value) {
     console.log(i, value);
+};
+
+RuffBufferList.prototype.slice = function (start, end) {
+    var tmp = new Buffer('');
+    if (start === null || start === undefined) {
+        start = 0;
+    }
+    if (end === null || end === undefined) {
+        end = this.length;
+    }
+    this.arr.some(function (element) {
+        if (start > element.length - 1) {
+            start -= element.length;
+            end -= element.length;
+        }
+        else {
+            if (end > element.length) {
+                tmp = Buffer.concat([tmp, element.slice(start)]);
+                start = 0;
+            }
+            else {
+                tmp = Buffer.concat([tmp, element.slice(start, end)]);
+                return true;
+            }
+            end -= element.length;
+        }
+    }, this);
+    return tmp;
+};
+
+RuffBufferList.prototype.copy = function (dst, dstStart, srcStart, srcEnd) {
+    var tmp = this.slice(srcStart, srcEnd);
+    tmp.copy(dst, dstStart);
+    return dst;
+};
+
+RuffBufferList.prototype.consume = function (bytes) {
+    while (this.arr.length) {
+        if (bytes >= this.arr[0].length) {
+            bytes -= this.arr[0].length;
+            this.length -= this.arr[0].length; 
+            this.arr.shift();
+        } else {
+            this.arr[0] = this.arr[0].slice(bytes);
+            this.length -= bytes;
+            break;
+        }
+    }
+    return this;
+};
+
+RuffBufferList.prototype.getArray = function () {
+    return this.arr;
+};
+
+RuffBufferList.prototype.append = function (val) {
+    // if (typeof(val) == "Buffer") {
+    this.arr.push(val);
+    // }
+    this.length += val.length;
 };
 
 (function () {
@@ -83,17 +101,11 @@ RuffBufferList.prototype.__put_index__ = function (i, value) {
   }
 }())
 
-
-
 var bl = new RuffBufferList();
-var b = Buffer.from('!!!!!!!!!!!!!');
-
 bl.append(Buffer.from('123'));
 bl.append(Buffer.from('456'));
 bl.append(Buffer.from('789'));
-bl.append(Buffer.from('123123'));
-console.log(bl.copy(b,3,5,7));
 
+console.log(bl[0]);
 
-
-exports.BufferList = RuffBufferList;
+module.exports = RuffBufferList;
