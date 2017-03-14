@@ -7,11 +7,20 @@ var RuffBufferList = function BufferList() {
 };
 
 RuffBufferList.prototype.__get_index__ = function (i) {
-    return i;
+    return this.slice(i, i+1);
 };
 
 RuffBufferList.prototype.__put_index__ = function (i, value) {
-    console.log(i, value);
+    this.arr.some(function (element) {
+        if (i < this.length) {
+            var tmp = value + "";
+            element.write(tmp,i);
+            return true;
+        }
+        else {
+            i -= this.length;
+        }  
+    }, this);
 };
 
 RuffBufferList.prototype.slice = function (start, end) {
@@ -74,6 +83,45 @@ RuffBufferList.prototype.append = function (val) {
     this.length += val.length;
 };
 
+RuffBufferList.prototype.indexOf = function (dst) {
+    var dst = dst + "";
+    if (dst.length > this.length) {
+        return -1;
+    }
+    var src = "";
+    var index = 0;
+    var found = false;
+    for (var i = 0; i < this.arr.length; i++) {
+        var tmp = Buffer.from("");
+        var offset = 0;
+        while (tmp.length < dst.length + this.arr[i].length) {
+            if (i + offset >= this.arr.length) {
+                break;
+            }
+            tmp = Buffer.concat([tmp, this.arr[i + offset]]);
+            offset++;
+        }
+        if (tmp.length < dst.length) {
+            break;
+        }
+        src = tmp.toString();
+        if (src.indexOf(dst) !== -1) {
+            index += src.indexOf(dst);
+            found = true;
+            break;
+        } else {
+            index += this.arr[i].length;
+        }
+    }
+    if (found) {
+        return index;
+    }
+    else {
+        return -1;
+    }
+};
+
+
 (function () {
   var methods = {
       'readDoubleBE' : 8
@@ -100,12 +148,5 @@ RuffBufferList.prototype.append = function (val) {
     }(m))
   }
 }())
-
-var bl = new RuffBufferList();
-bl.append(Buffer.from('123'));
-bl.append(Buffer.from('456'));
-bl.append(Buffer.from('789'));
-
-console.log(bl[0]);
 
 module.exports = RuffBufferList;

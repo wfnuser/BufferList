@@ -76,8 +76,6 @@ describe('test parser', function () {
         bl.append(Buffer.from('456'));
         bl.append(Buffer.from('789'));
 
-        console.log(bl[1]);
-        
         if (bl.readUInt16BE(5) != 13879)
             done(new Error());
         if (bl.readUInt16LE(5) != 14134)
@@ -89,4 +87,20 @@ describe('test parser', function () {
         done();
     });
 
+    it('should return index of string', function (done) {
+        var bl = new BufferList();
+        bl.append(Buffer.from('123'));
+        bl.append(Buffer.from('456'));
+        bl.append(Buffer.from('789'));
+        
+        if (bl.indexOf(1) != 0)
+            done(new Error());
+        if (bl.indexOf("12") != 0)
+            done(new Error());
+        if (bl.indexOf("34567") != 2)
+            done(new Error());
+        if (bl.indexOf("13") != -1)
+            done(new Error());
+        done();
+    });
 });
