@@ -6,27 +6,24 @@ var RuffBufferList = function BufferList() {
 };
 
 RuffBufferList.prototype.__get_index__ = function (i) {
-    var tmp = new Buffer("");
+    var tmp;
     for (var idx = 0; idx < this.arr.length; idx++) {
         if (i < this.arr[idx].length) {
             tmp = this.arr[idx][i];
             break;
-        } else {
-            i -= this.arr[idx].length;
-        };
+        }
+        i -= this.arr[idx].length;
     };
     return tmp;
 };
 
 RuffBufferList.prototype.__put_index__ = function (i, value) {
-    value = value + "";
     for (var idx = 0; idx < this.arr.length; idx++) {
         if (i < this.arr[idx].length) {
-            this.arr[idx].write(value,i);
+            this.arr[idx].writeUInt8(value,i);
             break;
-        } else {
-            i -= this.arr[idx].length;
-        };
+        }
+        i -= this.arr[idx].length;
     };
 };
 
@@ -96,6 +93,24 @@ RuffBufferList.prototype.readInt8 = function (offset) {
 
 RuffBufferList.prototype.readUInt8 = function (offset) {
     return this.__get_index__(offset);
+};
+
+
+RuffBufferList.prototype.indexOf = function (dst) {
+    dst += "";
+    var buf = Buffer.from(dst);
+    var result = -1;
+    for (var i = 0; i < this.length; i++) {
+        var offset = 0;
+        while (this.__get_index__(offset + i) == buf[offset]) {
+            offset++;
+            if (offset >= buf.length) {
+                result = i;
+                break;
+            };
+        };
+    }
+    return result;
 };
 
 RuffBufferList.prototype.indexOf2 = function (dst) {

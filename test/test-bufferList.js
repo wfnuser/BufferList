@@ -20,8 +20,34 @@ var result1 = Buffer.from('12');
 var result2 = Buffer.from('1234');
 var result3 = Buffer.from('3456789');
 var result4 = Buffer.from('!!!67!!!!!!!!!!!!!!!!');
-						
-describe('test parser', function () {
+
+function genBlWithAscBuffer () {
+    var bl = new BufferList();
+    var b = Buffer.alloc(0x100);
+    for (var i = 0; i < 0x100; i++) {
+        b[i]=i;
+    }
+    bl.append(b);
+    return bl;
+}
+
+function genBlWithChunks () {
+    var bl = new BufferList();
+    for (var i = 0; i < 0x100; i++) {
+        bl.append(Buffer.alloc(1,i));
+    }
+    return bl;
+}
+
+function genBlWithChunksInDiffSize () {
+    var bl = new BufferList();
+    for (var i = 0; i < 0x100; i++) {
+        bl.append(Buffer.alloc(1,i));
+    }
+    return bl;
+}			
+
+describe('test buffer list', function () {
     it('should slice bufferList range in each item', function (done) {
         if (slicebl1.toString() === result1.toString())
             done();
@@ -70,7 +96,7 @@ describe('test parser', function () {
         done();
     });
 
-    it('should get by index', function (done) {
+    it('should read buffer', function (done) {
         var bl = new BufferList();
         bl.append(Buffer.from('123'));
         bl.append(Buffer.from('456'));
@@ -84,23 +110,67 @@ describe('test parser', function () {
             done(new Error());
         if (bl.readUInt32BE(5) != 909588537)
             done(new Error());
+            
         done();
     });
 
-    it('should return index of string', function (done) {
+    it('should indexOf for buffer chunks', function (done) {
+
+        var bl = genBlWithChunks();
+        console.log(bl);
+        for (var i = 0; i < 0x100; i++) {
+            if (bl.indexOf(i) !== i) {
+                console.log(bl.indexOf(i));
+                done(new Error());
+                return;
+            }
+        }
+
+        done();
+    });
+    it('should indexOf for single buffer', function (done) {
+        
+        var bl = genBlWithAscBuffer();
+        for (var i = 0; i < 0x100; i++) {
+            if (bl.indexOf(i) !== i) {
+                done(new Error());
+                return;
+            }
+        }
+
+        done();
+    });
+
+    it('should get for single buffer', function (done) {
+        var bl = genBlWithAscBuffer();
+        for (var i = 0; i < 0x100; i++) {
+            if (bl.__get_index__(i) !== i)
+                done(new Error());
+        }
+
+        done();
+    });
+
+    it('should put for buffer chunks', function (done) {
+        var bl = genBlWithChunks();
+        for (var i = 0; i < 0x100; i++) {
+            bl.__put_index__(i, (0xff-i));
+            if (bl.__get_index__(i) !== 0xff-i)
+                done(new Error());
+        }
+
+        done();
+    });
+
+    it('should put for single buffer', function (done) {
         var bl = new BufferList();
-        bl.append(Buffer.from('123'));
-        bl.append(Buffer.from('456'));
-        bl.append(Buffer.from('789'));
-        console.log(bl.__get_index__(2));
-        if (bl.indexOf2(1) != 0)
-            done(new Error());
-        if (bl.indexOf2("12") != 0)
-            done(new Error());
-        if (bl.indexOf2("34567") != 2)
-            done(new Error());
-        if (bl.indexOf2("13") != -1)
-            done(new Error());
+        bl.append(Buffer.alloc(0x100));
+        for (var i = 0; i <= 0xff; i++) {
+            bl.__put_index__(i, 0xff-i);
+            if (bl.__get_index__(i) !== 0xff-i)
+                done(new Error());
+        }
+
         done();
     });
 });
