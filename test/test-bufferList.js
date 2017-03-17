@@ -21,6 +21,7 @@ var result2 = Buffer.from('1234');
 var result3 = Buffer.from('3456789');
 var result4 = Buffer.from('!!!67!!!!!!!!!!!!!!!!');
 
+// single buffer
 function genBlWithAscBuffer () {
     var bl = new BufferList();
     var b = Buffer.alloc(0x100);
@@ -31,6 +32,7 @@ function genBlWithAscBuffer () {
     return bl;
 }
 
+// buffer chunks
 function genBlWithChunks () {
     var bl = new BufferList();
     for (var i = 0; i < 0x100; i++) {
@@ -39,13 +41,24 @@ function genBlWithChunks () {
     return bl;
 }
 
+// buffer chunks in ascend size
 function genBlWithChunksInDiffSize () {
     var bl = new BufferList();
-    for (var i = 0; i < 0x100; i++) {
-        bl.append(Buffer.alloc(1,i));
+    var i = 0;
+    var j = 0;
+    var size = 1;
+    while (i < 0x100) {
+        if (size + i >= 0x100) size = 0x100 - i;
+        var b = Buffer.alloc(size);
+        for (j = i; j < size + i; j++) {
+            b[j-i] = j;
+        }
+        i = j;
+        bl.append(b);
+        size++;
     }
     return bl;
-}			
+}		
 
 describe('test buffer list', function () {
     it('should slice bufferList range in each item', function (done) {
@@ -117,10 +130,8 @@ describe('test buffer list', function () {
     it('should indexOf for buffer chunks', function (done) {
 
         var bl = genBlWithChunks();
-        console.log(bl);
         for (var i = 0; i < 0x100; i++) {
             if (bl.indexOf(i) !== i) {
-                console.log(bl.indexOf(i));
                 done(new Error());
                 return;
             }
@@ -131,6 +142,18 @@ describe('test buffer list', function () {
     it('should indexOf for single buffer', function (done) {
         
         var bl = genBlWithAscBuffer();
+        for (var i = 0; i < 0x100; i++) {
+            if (bl.indexOf(i) !== i) {
+                done(new Error());
+                return;
+            }
+        }
+
+        done();
+    });
+    it('should indexOf for buffer in different size', function (done) {
+        
+        var bl = genBlWithChunksInDiffSize();
         for (var i = 0; i < 0x100; i++) {
             if (bl.indexOf(i) !== i) {
                 done(new Error());
@@ -163,9 +186,8 @@ describe('test buffer list', function () {
     });
 
     it('should put for single buffer', function (done) {
-        var bl = new BufferList();
-        bl.append(Buffer.alloc(0x100));
-        for (var i = 0; i <= 0xff; i++) {
+        var bl = genBlWithAscBuffer();
+        for (var i = 0; i < 0x100; i++) {
             bl.__put_index__(i, 0xff-i);
             if (bl.__get_index__(i) !== 0xff-i)
                 done(new Error());
@@ -173,4 +195,5 @@ describe('test buffer list', function () {
 
         done();
     });
+
 });

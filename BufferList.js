@@ -4,6 +4,7 @@ var RuffBufferList = function BufferList() {
     this.length = 0;
     this.arr = [];
 };
+var p = [];
 
 RuffBufferList.prototype.__get_index__ = function (i) {
     var tmp;
@@ -97,18 +98,43 @@ RuffBufferList.prototype.readUInt8 = function (offset) {
 
 
 RuffBufferList.prototype.indexOf = function (dst) {
-    dst += "";
-    var buf = Buffer.from(dst);
+    var buf;
     var result = -1;
+    try {
+        var len;
+        if (dst.length === undefined) len = 1;
+        else len = dst.length;
+        buf = Buffer.alloc(len, dst);
+    } catch (e) {
+        throw new Error("indexOf arguments illegal");
+    }
+
+    //KMP to get better efficiency
+    var j = -1;
+    p[0] = -1;
+    for (i = 1; i < this.length; i++) {
+        while (j > -1 && this.__get_index__(j+1) !== this.__get_index__(i)) {j = p[j];}
+        if (this.__get_index__(j+1) === this.__get_index__(i)) j++;
+        p[i] = j;
+    }
+    j = -1;
     for (var i = 0; i < this.length; i++) {
-        var offset = 0;
-        while (this.__get_index__(offset + i) == buf[offset]) {
-            offset++;
-            if (offset >= buf.length) {
-                result = i;
-                break;
-            };
-        };
+        // console.log(this.__get_index__(i), buf[j+1]);
+        while(j > -1 && buf[j+1] !== this.__get_index__(i)) {j = p[j];}
+        if (buf[j+1] === this.__get_index__(i)) {j = j + 1;}
+        // console.log(buf, i, j, this.__get_index__(i), buf[j+1]);
+        if (j >= buf.length - 1) {
+            result = i - buf.length + 1;
+            break;
+        }
+        // var offset = 0;
+        // while (this.__get_index__(offset + i) == buf[offset]) {
+        //     offset++;
+        //     if (offset >= buf.length) {
+        //         result = i;
+        //         break;
+        //     };
+        // };
     }
     return result;
 };
