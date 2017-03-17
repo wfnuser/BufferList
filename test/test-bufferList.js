@@ -76,11 +76,11 @@ describe('test buffer list', function () {
             done(new Error());
     });
 
-    it('should copy', function (done) {
-        if (copybl1.toString() === result4.toString())
-            done();
-        else 
+    it('should append', function (done) {
+        var bl = genBlWithChunks();
+        if (bl.length !== 0x100)
             done(new Error());
+        done();
     });
 
     it('should consume', function (done) {
