@@ -104,11 +104,13 @@ RuffBufferList.prototype.indexOf = function (dst) {
         var len;
         if (dst.length === undefined) len = 1;
         else len = dst.length;
-        buf = Buffer.alloc(len, dst);
+        if (dst instanceof Buffer)
+            buf = dst;
+        else
+            buf = Buffer.alloc(len, dst);
     } catch (e) {
         throw new Error("indexOf arguments illegal");
     }
-
     //KMP to get better efficiency
     var j = -1;
     p[0] = -1;
@@ -119,50 +121,76 @@ RuffBufferList.prototype.indexOf = function (dst) {
     }
     j = -1;
     for (var i = 0; i < this.length; i++) {
-        // console.log(this.__get_index__(i), buf[j+1]);
         while(j > -1 && buf[j+1] !== this.__get_index__(i)) {j = p[j];}
         if (buf[j+1] === this.__get_index__(i)) {j = j + 1;}
-        // console.log(buf, i, j, this.__get_index__(i), buf[j+1]);
         if (j >= buf.length - 1) {
             result = i - buf.length + 1;
             break;
         }
-        // var offset = 0;
-        // while (this.__get_index__(offset + i) == buf[offset]) {
-        //     offset++;
-        //     if (offset >= buf.length) {
-        //         result = i;
-        //         break;
-        //     };
-        // };
+    }
+    return result;
+};
+
+RuffBufferList.prototype.indexOf3 = function (dst) {
+    var buf;
+    var result = -1;
+    try {
+        var len;
+        if (dst.length === undefined) len = 1;
+        else len = dst.length;
+        if (dst instanceof Buffer)
+            buf = dst;
+        else
+            buf = Buffer.alloc(len, dst);
+    } catch (e) {
+        throw new Error("indexOf arguments illegal");
+    }
+    for (var i = 0; i < this.length; i++) {
+        var offset = 0;
+        while (this.__get_index__(offset + i) == buf[offset]) {
+            offset++;
+            if (offset >= buf.length) {
+                result = i;
+                break;
+            };
+        };
     }
     return result;
 };
 
 RuffBufferList.prototype.indexOf2 = function (dst) {
-    var dst = dst + "";
-    if (dst.length > this.length) {
+    var buf;
+    try {
+        var len;
+        if (dst.length === undefined) len = 1;
+        else len = dst.length;
+        if (dst instanceof Buffer)
+            buf = dst;
+        else
+            buf = Buffer.alloc(len, dst);
+    } catch (e) {
+        throw new Error("indexOf arguments illegal");
+    }
+    if (buf.length > this.length) {
         return -1;
     }
-    var src = "";
     var index = 0;
     var found = false;
     for (var i = 0; i < this.arr.length; i++) {
-        var tmp = Buffer.from("");
+        var tmp = Buffer.alloc(0);
         var offset = 0;
-        while (tmp.length < dst.length + this.arr[i].length) {
+        while (tmp.length < buf.length + this.arr[i].length) {
             if (i + offset >= this.arr.length) {
                 break;
             }
             tmp = Buffer.concat([tmp, this.arr[i + offset]]);
             offset++;
         }
-        if (tmp.length < dst.length) {
+        if (tmp.length < buf.length) {
             break;
         }
-        src = tmp.toString();
-        if (src.indexOf(dst) !== -1) {
-            index += src.indexOf(dst);
+        if (tmp.indexOf(buf) !== -1) {
+            index += tmp.indexOf(buf);
             found = true;
             break;
         } else {

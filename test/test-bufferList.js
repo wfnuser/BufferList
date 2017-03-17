@@ -58,6 +58,17 @@ function genBlWithChunksInDiffSize () {
         size++;
     }
     return bl;
+}
+
+// buffer chunks to test KMP
+function genBlToTestKMP () {
+    var bl = new BufferList();
+    for (var i = 0; i < 2; i++) {
+        bl.append(Buffer.alloc(1,2));
+        bl.append(Buffer.alloc(199,1));
+    }
+    bl.append(Buffer.alloc(1,1));
+    return bl;
 }		
 
 describe('test buffer list', function () {
@@ -108,7 +119,6 @@ describe('test buffer list', function () {
             done(new Error());
         done();
     });
-
     it('should read buffer', function (done) {
         var bl = new BufferList();
         bl.append(Buffer.from('123'));
@@ -131,7 +141,7 @@ describe('test buffer list', function () {
 
         var bl = genBlWithChunks();
         for (var i = 0; i < 0x100; i++) {
-            if (bl.indexOf(i) !== i) {
+            if (bl.indexOf3(i) !== i) {
                 done(new Error());
                 return;
             }
@@ -143,7 +153,7 @@ describe('test buffer list', function () {
         
         var bl = genBlWithAscBuffer();
         for (var i = 0; i < 0x100; i++) {
-            if (bl.indexOf(i) !== i) {
+            if (bl.indexOf2(i) !== i) {
                 done(new Error());
                 return;
             }
@@ -161,6 +171,23 @@ describe('test buffer list', function () {
             }
         }
 
+        done();
+    });
+    it('should indexOf for buffer to test KMP', function (done) {
+        var bl = genBlToTestKMP();
+        var tic, toc;
+        tic = Date.now();
+        console.log(bl.indexOf(Buffer.alloc(200,1)));
+        toc = Date.now();
+        console.log(toc - tic);
+        tic = Date.now();
+        console.log(bl.indexOf2(Buffer.alloc(200,1)));
+        toc = Date.now();
+        console.log(toc - tic);
+        tic = Date.now();
+        console.log(bl.indexOf3(Buffer.alloc(200,1)));
+        toc = Date.now();
+        console.log(toc - tic);
         done();
     });
 
